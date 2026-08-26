@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fuera de TOA — Generador de plantilla</title>
+<style>
+  :root{
+    --bg: #07090c;
+    --panel: #10141a;
+    --panel-2: #0b0f14;
+    --line: #1e262f;
+    --text: #eef2f6;
+    --muted: #7a8794;
+    --muted-2: #4d5761;
+    --cyan: #34d399;
+    --cyan-dim: rgba(52,211,153,0.12);
+    --amber: #f2a93b;
+    --amber-dim: #6b5527;
+    --danger: #ff6b6b;
+    --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, Menlo, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;
+    margin-bottom:24px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand .logo{
+    width:52px;height:52px;border-radius:14px;
+    background:var(--panel);border:1px solid var(--line);
+    object-fit:contain;padding:6px;flex-shrink:0;
+  }
+  .status{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--cyan);
+    display:flex;align-items:center;gap:7px;text-transform:uppercase;font-weight:600;
+    margin-bottom:2px;
+  }
+  h1{
+    font-size:23px;margin:2px 0 3px;letter-spacing:-0.01em;font-weight:700;
+  }
+  header p{margin:0;color:var(--muted);font-size:13px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--muted-2);display:inline-block;}
+  .dot.ok{background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+
+  .stat{
+    font-family:var(--mono);text-align:right;
+  }
+  .stat .num{font-size:26px;font-weight:700;color:var(--text);line-height:1;}
+  .stat .num.ok{color:var(--cyan);}
+  .stat .lbl{font-size:10px;color:var(--muted-2);letter-spacing:.1em;text-transform:uppercase;margin-top:3px;}
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:18px;
+    align-items:start;
+  }
+  @media (max-width: 900px){ .grid{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px 18px;
+  }
+  .card h2{
+    font-size:12px;text-transform:uppercase;letter-spacing:.12em;
+    color:var(--cyan);margin:0 0 4px;font-weight:700;
+  }
+  .card .hint{color:var(--muted);font-size:12.5px;margin:0 0 12px;line-height:1.5;}
+
+  textarea{
+    width:100%;min-height:230px;resize:vertical;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    color:var(--text);
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:1.55;
+    padding:12px;
+    outline:none;
+  }
+  textarea:focus, input:focus{border-color:var(--cyan);}
+  textarea::placeholder{color:var(--muted-2);}
+
+  .field-row{display:flex;align-items:center;gap:10px;margin-top:14px;}
+  .field-row label{font-size:12.5px;color:var(--muted);white-space:nowrap;}
+  .field-row input[type=text]{
+    flex:1;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:6px;color:var(--text);font-family:var(--mono);
+    font-size:12.5px;padding:8px 10px;outline:none;
+  }
+
+  details{margin-top:16px;border-top:1px dashed var(--line);padding-top:12px;}
+  summary{cursor:pointer;font-size:12px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;font-weight:600;}
+  summary:hover{color:var(--cyan);}
+  .cfg-table{width:100%;border-collapse:collapse;margin-top:12px;}
+  .cfg-table th{
+    text-align:left;font-size:10.5px;color:var(--muted-2);text-transform:uppercase;
+    letter-spacing:.08em;font-weight:600;padding:0 6px 6px;
+  }
+  .cfg-table td{padding:4px 6px;vertical-align:middle;}
+  .cfg-table td.lbl{font-size:12.5px;color:var(--text);white-space:nowrap;}
+  .cfg-table input{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:5px;color:var(--text);font-family:var(--mono);
+    font-size:12px;padding:6px 8px;outline:none;
+  }
+
+  /* ---- franja control ---- */
+  .franja-control{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    margin-bottom:14px;padding-bottom:14px;
+    border-bottom:1px dashed var(--line);
+  }
+  .franja-control label{font-size:12.5px;color:var(--muted);white-space:nowrap;}
+  .franja-control input[type=date]{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
+    color:var(--text);font-family:var(--mono);font-size:12.5px;
+    padding:7px 9px;outline:none;color-scheme:dark;
+  }
+  .franja-control input[type=date]:focus{border-color:var(--cyan);}
+  .pill-group{display:flex;gap:6px;}
+  .pill-btn{
+    font-family:var(--mono);font-size:12px;font-weight:600;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    border-radius:20px;padding:7px 14px;cursor:pointer;transition:all .12s ease;
+  }
+  .pill-btn:hover{border-color:var(--cyan);color:var(--text);}
+  .pill-btn.active{
+    background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan);
+  }
+  .pill-btn.ghost{color:var(--muted-2);}
+  .pill-btn.ghost.active{background:transparent;border-color:var(--muted);color:var(--text);}
+
+  /* ---- ticket / output ---- */
+  .ticket-shell{position:relative;}
+  .ticket{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px 18px 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .ticket::before{
+    content:"";position:absolute;left:0;right:0;top:0;height:4px;
+    background:repeating-linear-gradient(90deg, var(--cyan) 0 10px, transparent 10px 18px);
+    opacity:.55;
+  }
+  .ticket-head{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:10px;
+  }
+  .ticket-head .label{
+    font-family:var(--mono);font-size:11px;color:var(--amber);
+    letter-spacing:.1em;font-weight:700;
+  }
+  .ticket-head .sot{font-family:var(--mono);font-size:11px;color:var(--muted-2);}
+  pre#output{
+    font-family:var(--mono);
+    font-size:12.8px;
+    line-height:1.85;
+    white-space:pre-wrap;
+    word-break:break-word;
+    margin:0;
+    color:var(--text);
+    min-height:220px;
+  }
+  pre#output .k{color:var(--cyan);}
+  pre#output .empty{color:var(--danger);}
+  .perforation{
+    height:0;border-top:1px dashed var(--line);margin:14px 0 12px;position:relative;
+  }
+  .perforation::before,.perforation::after{
+    content:"";position:absolute;top:-7px;width:14px;height:14px;
+    background:var(--bg);border-radius:50%;border:1px solid var(--line);
+  }
+  .perforation::before{left:-27px;}
+  .perforation::after{right:-27px;}
+
+  .actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  button{
+    font-family:var(--sans);font-weight:600;font-size:13px;
+    border-radius:7px;padding:10px 16px;border:1px solid transparent;
+    cursor:pointer;transition:transform .06s ease, opacity .15s ease;
+  }
+  button:active{transform:scale(0.98);}
+  .btn-primary{background:var(--cyan);color:#04222a;}
+  .btn-primary:hover{opacity:.9;}
+  .btn-ghost{background:transparent;color:var(--muted);border-color:var(--line);}
+  .btn-ghost:hover{color:var(--text);border-color:var(--muted-2);}
+  #copyFeedback{
+    font-family:var(--mono);font-size:11.5px;color:var(--cyan);
+    display:none;align-self:center;
+  }
+
+  .warn{
+    margin-top:14px;
+    display:flex;gap:10px;align-items:flex-start;
+    background:linear-gradient(90deg, rgba(242,169,59,0.12), rgba(242,169,59,0.04));
+    border:1px solid var(--amber-dim);
+    border-radius:8px;padding:10px 12px;
+    font-size:12px;color:#e8c98a;line-height:1.5;
+  }
+  .warn b{color:var(--amber);}
+
+  .fields-preview{margin-top:16px;}
+  .fp-row{
+    display:flex;justify-content:space-between;gap:10px;
+    font-family:var(--mono);font-size:11.5px;
+    padding:5px 0;border-bottom:1px solid var(--line);
+  }
+  .fp-row span:first-child{color:var(--muted-2);}
+  .fp-row span:last-child{color:var(--text);text-align:right;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .fp-row.miss span:last-child{color:var(--danger);}
+
+  footer{
+    text-align:center;color:var(--muted-2);font-size:11px;
+    margin-top:30px;font-family:var(--mono);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <img class="logo" src="https://www.appsheet.com:443/fsimage.png?appid=c1ead8ef-166c-4e05-81de-3702bb499b1e&datasource=google&filename=DocId%3D1cmCfOnZaBZXLh-yzS3rNTjBYZO52iYHd&signature=93fc4d3f822bb4224e71b5cca140519218ac2fdec2adc38cfc337537bde6ca6c&tableprovider=google&userid=386010278" alt="A365 logo">
+      <div>
+        <div class="status"><span class="dot" id="statusDot"></span><span id="statusLabel">FUERA DE TOA</span></div>
+        <h1>Generador de plantilla</h1>
+        <p>Agiliza los procesos de Atencion.</p>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="num" id="statNum">0/10</div>
+      <div class="lbl" id="statLbl">campos detectados</div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT: input -->
+    <div class="card">
+      <h2>1 · Pegar texto</h2>
+      <p class="hint">En tu TOA abre la actividad, presiona <b>Ctrl + A</b> y <b>Ctrl + C</b>. Luego haz clic en el cuadro de abajo y presiona <b>Ctrl + V</b>.</p>
+      <textarea id="rawInput" placeholder="Pega aquí el texto completo de la actividad…"></textarea>
+
+      <div class="field-row">
+        <label for="agentName">✍️ Realizado por</label>
+        <input type="text" id="agentName" value="JAVIER GODOY - A365">
+      </div>
+
+    </div>
+
+    <!-- RIGHT: output -->
+    <div class="card ticket-shell">
+      <h2>2 · Plantilla generada</h2>
+      <p class="hint">Cópiala y revisa la fecha antes de enviar.</p>
+
+      <div class="franja-control">
+        <label for="franjaDate">📅 Fecha</label>
+        <input type="date" id="franjaDate">
+        <div class="pill-group">
+          <button type="button" class="pill-btn" id="btnAM1" data-val="AM1">AM1</button>
+          <button type="button" class="pill-btn" id="btnPM1" data-val="PM1">PM1</button>
+          <button type="button" class="pill-btn ghost" id="btnAuto" data-val="">Auto (TOA)</button>
+        </div>
+      </div>
+
+      <div class="ticket">
+        <div class="ticket-head">
+          <span class="label">*FUERA DE TOA*</span>
+          <span class="sot" id="ticketSot">SOT —</span>
+        </div>
+        <pre id="output"></pre>
+      </div>
+
+      <div class="warn">
+        <span>⚠️</span>
+        <div><b>Importante:</b> por defecto se copia la fecha y franja tal cual la trae el TOA. Usa <b>AM1</b> o <b>PM1</b> arriba si necesitas fijar la franja manualmente.</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" id="copyBtn">📋 Copiar plantilla</button>
+        <button class="btn-ghost" id="clearBtn">Limpiar</button>
+        <span id="copyFeedback">¡Copiado!</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>FUERA DE TOA · herramienta local, ningún dato se envía a servidor alguno<br>Diseñado por Supervisor Eudovig Godoy</footer>
+</div>
+
+<script>
+const rawInput   = document.getElementById('rawInput');
+const agentName  = document.getElementById('agentName');
+const output     = document.getElementById('output');
+const statusDot  = document.getElementById('statusDot');
+const statNum    = document.getElementById('statNum');
+const statLbl    = document.getElementById('statLbl');
+const ticketSot  = document.getElementById('ticketSot');
+const franjaDate = document.getElementById('franjaDate');
+const btnAM1     = document.getElementById('btnAM1');
+const btnPM1     = document.getElementById('btnPM1');
+const btnAuto    = document.getElementById('btnAuto');
+
+let selectedFranja = '';   // '', 'AM1' or 'PM1'
+let dateEditedByUser = false;
+
+// Palabras clave fijas usadas para buscar cada campo en el texto pegado del TOA
+const KEYWORDS = {
+  sot: 'SOT',
+  subtipo: 'Sub Tipo de Orden',
+  direccion: 'Direccion',
+  distrito: 'Distrito',
+  servicio: 'Tipo de Orden',
+  plano: 'Plano',
+  cliente: 'Nombre',
+  codcliente: 'Código de Cliente',
+  celular: 'Telefono',
+  fecha: 'Fecha de Programacion',
+  franja: 'Ventana Entrega'
+};
+
+function extractField(text, keyword){
+  if(!keyword) return '';
+  const padded = '\n' + text + '\n';
+  const marker = '\n' + keyword + '\n';
+  const idx = padded.indexOf(marker);
+  if(idx === -1) return '';
+  const start = idx + marker.length;
+  const end = padded.indexOf('\n', start);
+  if(end === -1) return '';
+  return padded.substring(start, end).trim();
+}
+
+function escapeHtml(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// "25/08/26" -> "2026-08-25" (asume años de 2 dígitos como 20xx)
+function ddmmyyToISO(str){
+  const m = str.trim().match(/^(\d{2})\/(\d{2})\/(\d{2,4})$/);
+  if(!m) return '';
+  let [, d, mo, y] = m;
+  if(y.length === 2) y = '20' + y;
+  return `${y}-${mo}-${d}`;
+}
+
+// "2026-08-25" -> "25/08/26"
+function isoToDDMMYY(iso){
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return '';
+  const [, y, mo, d] = m;
+  return `${d}/${mo}/${y.slice(2)}`;
+}
+
+function render(){
+  const text = rawInput.value;
+
+  const sot        = extractField(text, KEYWORDS.sot);
+  const subtipo    = extractField(text, KEYWORDS.subtipo);
+  const direccion  = extractField(text, KEYWORDS.direccion);
+  const distrito   = extractField(text, KEYWORDS.distrito);
+  const servicio   = extractField(text, KEYWORDS.servicio);
+  const plano      = extractField(text, KEYWORDS.plano);
+  const cliente    = extractField(text, KEYWORDS.cliente);
+  const codcliente = extractField(text, KEYWORDS.codcliente);
+  const celular    = extractField(text, KEYWORDS.celular);
+  const fechaIni   = extractField(text, KEYWORDS.fecha);
+  const franja     = extractField(text, KEYWORDS.franja);
+
+  // sincroniza el input de fecha con lo extraído del TOA, salvo que el usuario ya la haya tocado
+  if(!dateEditedByUser && fechaIni){
+    const iso = ddmmyyToISO(fechaIni);
+    if(iso) franjaDate.value = iso;
+  }
+
+  let fechaYFranja;
+  if(selectedFranja){
+    const dateOut = franjaDate.value ? isoToDDMMYY(franjaDate.value) : (fechaIni || '');
+    fechaYFranja = [dateOut, selectedFranja].filter(Boolean).join(' ').trim();
+  } else {
+    fechaYFranja = [fechaIni, franja].filter(Boolean).join(' ').trim();
+  }
+  const nombre = agentName.value.trim() || '—';
+
+  const lines = [
+    '*FUERA DE TOA*',
+    `🔍 SOT:  ${sot}`,
+    `🍄 SUB TIPO: ${subtipo}`,
+    `🏡 DIRECCIÓN: ${direccion}`,
+    `📍 DISTRITO: ${distrito}`,
+    `⚒️ SERVICIO: ${servicio}`,
+    `🪚 PLANO: ${plano}`,
+    `👨‍💻 CLIENTE: ${cliente}`,
+    `🔣 COD CLIENTE: ${codcliente}`,
+    `📱 CELULAR DEL CLIENTE: ${celular}`,
+    `📅 FECHA Y FRANJA: ${fechaYFranja}`,
+    `✍️ REALIZADO POR: - ${nombre}`
+  ];
+  output.textContent = lines.join('\n');
+  ticketSot.textContent = 'SOT ' + (sot || '—');
+
+  const hasText = text.trim().length > 0;
+  const foundCount = [sot,subtipo,direccion,distrito,servicio,plano,cliente,codcliente,celular,fechaYFranja].filter(Boolean).length;
+  statNum.textContent = `${foundCount}/10`;
+  if(!hasText){
+    statusDot.className = 'dot';
+    statNum.className = 'num';
+    statLbl.textContent = 'esperando texto';
+  } else if(foundCount === 0){
+    statusDot.className = 'dot';
+    statNum.className = 'num';
+    statLbl.textContent = 'revisa el texto pegado';
+  } else {
+    statusDot.className = 'dot ok';
+    statNum.className = 'num ok';
+    statLbl.textContent = 'campos detectados';
+  }
+}
+
+rawInput.addEventListener('input', render);
+agentName.addEventListener('input', render);
+
+franjaDate.addEventListener('input', () => {
+  dateEditedByUser = true;
+  render();
+});
+
+function setFranja(val){
+  selectedFranja = val;
+  btnAM1.classList.toggle('active', val === 'AM1');
+  btnPM1.classList.toggle('active', val === 'PM1');
+  btnAuto.classList.toggle('active', val === '');
+  render();
+}
+btnAM1.addEventListener('click', () => setFranja('AM1'));
+btnPM1.addEventListener('click', () => setFranja('PM1'));
+btnAuto.addEventListener('click', () => setFranja(''));
+setFranja('');
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = output.textContent;
+  const feedback = document.getElementById('copyFeedback');
+  const showFeedback = () => {
+    feedback.style.display = 'inline';
+    setTimeout(() => feedback.style.display = 'none', 1600);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(showFeedback).catch(() => fallbackCopy(text, showFeedback));
+  } else {
+    fallbackCopy(text, showFeedback);
+  }
+});
+
+function fallbackCopy(text, cb){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+  cb();
+}
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  rawInput.value = '';
+  render();
+  rawInput.focus();
+});
+
+render();
+</script>
+</body>
+</html>
